@@ -9,6 +9,27 @@ const $newCommentForm = document.querySelector('#new-comment-form');
 
 let pizzaId;
 
+function getPizza() {
+  //get id of pizza
+  const searchParams = new URLSearchParams(document.location.search.substring(1));
+  const pizzaId = searchParams.get('id');
+
+  //get pizzaInfo
+  fetch(`/api/pizzas/${pizzaId}`)
+    .then(response => {
+      if(!response.ok) {
+        throw new Error({message: 'Something went wrong!'});
+      }
+      return response.json();
+    })
+    .then(printPizza)
+    .catch(err => {
+      console.log(err);
+      alert('Cannot find a pizza with this id! Taking you back.');
+      window.history.back;
+    });
+}
+
 function printPizza(pizzaData) {
   console.log(pizzaData);
 
@@ -87,6 +108,23 @@ function handleNewCommentSubmit(event) {
   }
 
   const formData = { commentBody, writtenBy };
+
+  fetch(`/api/comments/${pizzaId}`, {
+    method: 'post',
+    body: JSON.stringify(formData),
+    headers: {'Content-Type' : 'application/json', Accept: 'application/json'}
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Something went wrong!');
+    }
+    response.json();
+  })
+  .then(commentData => {
+    console.log(commentData);
+    location.reload();
+  })
+  .catch(err => console.log(err));
 }
 
 function handleNewReplySubmit(event) {
@@ -106,6 +144,23 @@ function handleNewReplySubmit(event) {
   }
 
   const formData = { writtenBy, replyBody };
+
+  fetch(`/api/comments/${pizzaId}/${commentId}`, {
+    method: 'put',
+    body: JSON.stringify(formData),
+    headers: { Accept: 'application/json', 'Content-Type' : 'application/json'}
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Something went wrong');
+    }
+    response.json();
+  })
+  .then(commentResponse => {
+    console.log(commentResponse);
+    location.reload();
+  })
+  .catch(err => console.log(err));
 }
 
 $backBtn.addEventListener('click', function() {
@@ -114,3 +169,5 @@ $backBtn.addEventListener('click', function() {
 
 $newCommentForm.addEventListener('submit', handleNewCommentSubmit);
 $commentSection.addEventListener('submit', handleNewReplySubmit);
+
+getPizza();
