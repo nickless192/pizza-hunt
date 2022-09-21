@@ -23,13 +23,13 @@ const commentController = {
             }
             res.json(dbPizzaData);
         })
-        .catch(err => console.log(err));
+        .catch(err => res.status(500).json(err));
     },
     // add reply
     addReply({params, body}, res) {
         Comment.findOneAndUpdate({_id: params.commentId},
             {$push: {replies: body}},
-            {new: true})
+            {new: true, runValidators: true})
             .then(dbCommentData => {
                 if(!dbCommentData) {
                     res.status(400).json({message: 'No comment found with this id'});
